@@ -17,7 +17,7 @@ from google import genai
 
 # Central place to update the model name if needed.
 # You can swap this for a different Gemini model in the future.
-GEMINI_MODEL_NAME = "gemma-3-27b-it"
+GEMINI_MODEL_NAME = "gemini-flash-latest"
 
 
 class GeminiClient:
@@ -46,11 +46,19 @@ class GeminiClient:
     # -----------------------------------------------------------
 
     def naive_answer_over_full_docs(self, query, all_text):
-        # We ignore all_text and send a generic prompt instead
+        # Naive baseline: dump the ENTIRE docs corpus into the prompt with no
+        # retrieval and no strict grounding rules. This is the "stuff
+        # everything in" approach we compare against focused RAG.
         prompt = f"""
-    You are a documentation assistant. 
-    Answer this developer question: {query}
-    """
+You are a documentation assistant. Use the project documentation below to
+answer the developer's question.
+
+Project documentation:
+{all_text}
+
+Developer question:
+{query}
+"""
         try:
             response = self.client.models.generate_content(
                 model=GEMINI_MODEL_NAME,
